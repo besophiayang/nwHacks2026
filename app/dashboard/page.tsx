@@ -6,26 +6,34 @@ import ProblemList from "@/components/dashboard/ProblemList";
 
 export default function DashboardPage() {
   return (
-    <div className="min-h-screen bg-neutral-100">
-      <div className="flex">
+    <main className="min-h-screen bg-neutral-100">
+      <div className="flex min-h-screen">
         <Sidebar />
 
-        <main className="flex-1 p-6">
+        <div className="flex-1 px-6 pt-6">
           <TopBar />
 
-          <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <div className="lg:col-span-2">
-              <StatCards />
-              <div className="mt-6">
-                <CoursesTabs />
+          <div className="mx-auto w-full max-w-6xl p-6">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+              <div className="lg:col-span-2">
+                <StatCards />
+
+                <div className="mt-6">
+                  <CoursesTabs />
+                </div>
               </div>
-              <div className="mt-6">
-                <ProblemList />
-              </div>
+
+              <div className="hidden lg:block" />
             </div>
           </div>
-        </main>
+
+          <div className="mt-6 pb-6">
+            <ProblemList />
+          </div>
+        </div>
       </div>
-    </div>
+    </main>
   );
 }
+
+
