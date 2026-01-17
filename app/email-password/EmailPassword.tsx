@@ -3,10 +3,13 @@
 import { User } from "@supabase/supabase-js";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 
+import Logo from "@/images/Logo.png";
+
 type EmailPasswordProp = {
-    user: User | null;
+  user: User | null;
 };
 
 type Mode = "signup" | "signin";
@@ -32,9 +35,11 @@ export default function EmailPasswordDemo({ user }: EmailPasswordProp) {
   }
 
   useEffect(() => {
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setCurrentUser(session?.user ?? null);
-    });
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setCurrentUser(session?.user ?? null);
+      }
+    );
 
     return () => {
       listener?.subscription.unsubscribe();
@@ -54,15 +59,11 @@ export default function EmailPasswordDemo({ user }: EmailPasswordProp) {
         },
       });
 
-      if (error) {
-        setStatus(error.message);
-      } else {
-        setStatus("Check your inbox to confirm your new account.");
-      }
+      if (error) setStatus(error.message);
+      else setStatus("Check your inbox to confirm your new account.");
       return;
     }
 
-    // signin
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -77,77 +78,142 @@ export default function EmailPasswordDemo({ user }: EmailPasswordProp) {
   }
 
   return (
-    <div style={{ maxWidth: 420, margin: "0 auto", padding: 16 }}>
-      {!currentUser ? (
-        <>
-          <h1 style={{ fontSize: 20, fontWeight: 600, marginBottom: 12 }}>
-            {mode === "signup" ? "Sign up" : "Sign in"}
-          </h1>
+    <div className="min-h-screen">
+      <div className="flex min-h-screen">
+        <section className="relative w-full bg-white md:basis-[40%] md:flex-none">
+          <div className="relative h-full px-10 py-10 sm:px-14">
+            <div className="absolute left-8 top-8 sm:left-10 sm:top-10">
+              <Image
+                src={Logo}
+                alt="Logo"
+                width={96}
+                height={96}
+                className="h-16 w-16 object-contain sm:h-20 sm:w-20"
+                priority
+              />
+            </div>
 
-          <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-            <button type="button" onClick={() => setMode("signup")}>
-              Sign up
-            </button>
-            <button type="button" onClick={() => setMode("signin")}>
-              Sign in
-            </button>
+            {!currentUser ? (
+              <div className="pt-44">
+                <h1 className="text-3xl font-medium tracking-tight text-neutral-900">
+                  {mode === "signup" ? "Sign Up" : "Log In"}
+                </h1>
+
+                <form onSubmit={handleSubmit} className="mt-10 space-y-7">
+                  <div>
+                    <label className="text-[10px] font-semibold uppercase tracking-[0.22em] text-neutral-400">
+                      Username <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      className="mt-3 w-full border-0 border-b border-neutral-300 bg-transparent px-0 pb-2 text-sm text-neutral-900 outline-none focus:border-neutral-900 focus:ring-0"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-semibold uppercase tracking-[0.22em] text-neutral-400">
+                      Password <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      minLength={6}
+                      className="mt-3 w-full border-0 border-b border-neutral-300 bg-transparent px-0 pb-2 text-sm text-neutral-900 outline-none focus:border-neutral-900 focus:ring-0"
+                    />
+                    <p className="mt-2 text-xs text-neutral-400">
+                      {mode === "signup"
+                        ? "Minimum 6 characters"
+                        : "Enter your password"}
+                    </p>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="mt-2 w-full bg-black py-3 text-sm font-medium text-white transition hover:bg-neutral-900 active:bg-black"
+                  >
+                    {mode === "signup" ? "Create Account" : "Sign In"}
+                  </button>
+                </form>
+
+                <div className="mt-6 flex items-center justify-between text-xs text-neutral-400">
+                  <span className="uppercase tracking-wider">
+                    {mode === "signup"
+                      ? "Already have an account?"
+                      : "Don't have an account?"}
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={() => setMode(mode === "signup" ? "signin" : "signup")}
+                    className="font-medium text-neutral-700 underline underline-offset-4 hover:text-neutral-900"
+                  >
+                    {mode === "signup" ? "Log In" : "Create account"}
+                  </button>
+                </div>
+
+                {status && (
+                  <p
+                    className="mt-6 text-sm text-neutral-700"
+                    role="status"
+                    aria-live="polite"
+                  >
+                    {status}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div className="pt-44">
+                <h1 className="text-3xl font-medium tracking-tight text-neutral-900">
+                  Account
+                </h1>
+
+                <p className="mt-6 text-sm text-neutral-700">
+                  Signed in as{" "}
+                  <b className="text-neutral-900">{currentUser.email}</b>
+                </p>
+
+                <div className="mt-8 flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      router.push("/dashboard");
+                      router.refresh();
+                    }}
+                    className="w-full bg-black py-3 text-sm font-medium text-white hover:bg-neutral-900"
+                  >
+                    Go to Dashboard
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleSignOut}
+                    className="w-full border border-neutral-300 py-3 text-sm font-medium text-neutral-900 hover:border-neutral-900"
+                  >
+                    Sign out
+                  </button>
+                </div>
+
+                {status && (
+                  <p className="mt-6 text-sm text-neutral-700" role="status" aria-live="polite">
+                    {status}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
+        </section>
 
-          <form onSubmit={handleSubmit}>
-            <div style={{ marginBottom: 10 }}>
-              <label style={{ display: "block", marginBottom: 4 }}>Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                placeholder="you@email.com"
-                style={{ width: "100%", padding: 8 }}
-              />
-            </div>
-
-            <div style={{ marginBottom: 10 }}>
-              <label style={{ display: "block", marginBottom: 4 }}>Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-                placeholder="At least 6 characters"
-                style={{ width: "100%", padding: 8 }}
-              />
-            </div>
-
-            <button type="submit" style={{ width: "100%", padding: 10 }}>
-              {mode === "signup" ? "Create account" : "Sign in"}
-            </button>
-          </form>
-
-          {status && (
-            <p style={{ marginTop: 12 }} role="status" aria-live="polite">
-              {status}
-            </p>
-          )}
-        </>
-      ) : (
-        <div>
-          <p style={{ marginBottom: 8 }}>
-            Signed in as <b>{currentUser.email}</b>
-          </p>
-
-          <button type="button" onClick={handleSignOut}>
-            Sign out
-          </button>
-
-          {status && (
-            <p style={{ marginTop: 12 }} role="status" aria-live="polite">
-              {status}
-            </p>
-          )}
-        </div>
-      )}
+        <section className="relative hidden bg-[#e9e7e4] md:block md:flex-1">
+          <div className="absolute inset-0 flex items-center justify-center p-10">
+            <div className="h-full w-full bg-black/5" />
+          </div>
+        </section>
+      </div>
     </div>
   );
 }
-
