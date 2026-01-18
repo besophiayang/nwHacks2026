@@ -10,15 +10,15 @@ export default function DashboardPage() {
         <Sidebar />
         <div className="flex-1 px-6 pt-6">
           <TopBar />
-          <div className="w-full">
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="mt-8 w-full lg:mt-10">
+            <div className="w-full">
               <div className="lg:col-span-2">
                 <StatCards />
               </div>
               <div className="hidden lg:block" />
             </div>
           </div>
-          <div className="mt-6 w-full">
+          <div className="mt-8 w-full lg:mt-10">
             <PracticePanel />
           </div>
         </div>

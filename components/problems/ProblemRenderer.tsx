@@ -2,8 +2,12 @@
 
 import * as TrussOptimizationMod from "./TrussOptimization";
 import * as StressSrainSteelMod from "./StressStrainSteel";
+import * as StressStrainAluminumMod from "./StressStrainAluminum";
 
-const StressSrainSteel =
+const StressStrainAluminum =
+  (StressStrainAluminumMod as any).default ?? (StressStrainAluminumMod as any);
+
+const StressStrainSteel =
   (StressSrainSteelMod as any).default ?? (StressSrainSteelMod as any);
 
 const TrussOptimization =
@@ -16,7 +20,10 @@ export default function ProblemRenderer({ link, problemId }: { link: string; pro
       return <TrussOptimization problemId={problemId}/>;
 
     case "stress-strain-steel":
-        return <StressSrainSteel problemId={problemId}/>;
+        return <StressStrainSteel problemId={problemId}/>;
+
+    case "stress-strain-aluminum":
+        return <StressStrainAluminum problemId={problemId}/>;
 
     default:
       return (

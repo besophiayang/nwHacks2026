@@ -16,10 +16,10 @@ const PASS_SCORE = 60;
 
 const REF: Pt[] = [
   { x: 0.0, y: 0.0 },
-  { x: 0.18, y: 0.55 }, 
-  { x: 0.27, y: 0.50 }, 
-  { x: 0.55, y: 0.78 }, 
-  { x: 0.92, y: 0.60 }, 
+  { x: 0.16, y: 0.52 }, 
+  { x: 0.30, y: 0.60 }, 
+  { x: 0.62, y: 0.72 }, 
+  { x: 0.92, y: 0.66 }, 
 ];
 
 const MAX_ALLOWED_MEAN_DIST = 0.35; 
@@ -78,7 +78,6 @@ function resample(pts: Pt[], n: number): Pt[] {
   }
 
   out.push({ ...pts[pts.length - 1] });
-
   while (out.length < n) out.push({ ...out[out.length - 1] });
   return out.slice(0, n);
 }
@@ -111,10 +110,8 @@ function compareCurves(user: Pt[], ref: Pt[]) {
 
   const a = nearestAvg(user, ref);
   const b = nearestAvg(ref, user);
-
   const mean = (a.mean + b.mean) / 2;
   const haus = Math.max(a.max, b.max); 
-
   const meanScore = 100 * (1 - mean / MAX_ALLOWED_MEAN_DIST);
   const hausPenalty = haus > MAX_ALLOWED_HAUSDORFF ? 35 : 0;
   const score = clamp(meanScore - hausPenalty, 0, 100);
@@ -126,7 +123,7 @@ function inPlot(p: Pt) {
   return p.x >= M.l && p.x <= M.l + PW && p.y >= M.t && p.y <= M.t + PH;
 }
 
-export default function StressStrainSteel({ problemId }: { problemId: string }) {
+export default function StressStrainAluminum({ problemId }: { problemId: string }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [strokes, setStrokes] = useState<Pt[][]>([]); 
   const [drawing, setDrawing] = useState(false);
@@ -172,17 +169,14 @@ export default function StressStrainSteel({ problemId }: { problemId: string }) 
 
     ctx.strokeStyle = "#111827";
     ctx.lineWidth = 2.2;
-
     ctx.beginPath();
     ctx.moveTo(M.l, M.t + PH);
     ctx.lineTo(M.l + PW, M.t + PH);
     ctx.stroke();
-
     ctx.beginPath();
     ctx.moveTo(M.l, M.t);
     ctx.lineTo(M.l, M.t + PH);
     ctx.stroke();
-
     ctx.fillStyle = "#111827";
     ctx.font = "13px system-ui, -apple-system, Segoe UI, Roboto, Arial";
     ctx.fillText("Stress, σ", M.l - 55, M.t + 14);
@@ -322,6 +316,7 @@ export default function StressStrainSteel({ problemId }: { problemId: string }) 
     }
 
     const userNormRaw = longest.map(canvasToNorm).sort((a, b) => a.x - b.x);
+
     userNormRaw[0] = { x: 0, y: 0 };
 
     const user = resample([...userNormRaw], RESAMPLE_N);
@@ -332,7 +327,7 @@ export default function StressStrainSteel({ problemId }: { problemId: string }) 
 
     const msg = pass
       ? `Nice! Your curve is pretty close. Score: ${score.toFixed(0)}/100`
-      : `Not quite. Score: ${score.toFixed(0)}/100. Hint: Steel has a clear yield point.`;
+      : `Not quite. Score: ${score.toFixed(0)}/100. Hint: Aluminum has a smooth curve.`;
 
     setResult({
       score,
@@ -347,17 +342,6 @@ export default function StressStrainSteel({ problemId }: { problemId: string }) 
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ problemId, score }),
     });
-
-    await fetch("/api/attempts", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    problemId,
-    status: pass ? "solved" : "attempted",
-    score,
-  }),
-});
-
   }
 
 
@@ -366,7 +350,7 @@ export default function StressStrainSteel({ problemId }: { problemId: string }) 
       <div className="flex items-start justify-between gap-6">
         <div>
           <div className="text-lg font-semibold text-neutral-900">
-            Draw the stress–strain curve for steel.
+            Draw the stress–strain curve for aluminum.
           </div>
           <div className="mt-1 text-sm text-neutral-600">
             Your line should be continuous.
