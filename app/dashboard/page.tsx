@@ -13,7 +13,8 @@ export default function DashboardPage() {
         <div className="flex-1 px-6 pt-6">
           <TopBar />
 
-          <div className="mx-auto w-full max-w-6xl p-6">
+          {/* remove the centered + padded container that was shifting left edge */}
+          <div className="w-full">
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
               <div className="lg:col-span-2">
                 <StatCards />
@@ -27,6 +28,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
+          {/* ProblemList stays full width */}
           <div className="mt-6 pb-6">
             <ProblemList />
           </div>
@@ -35,5 +37,7 @@ export default function DashboardPage() {
     </main>
   );
 }
+
+
 
 
