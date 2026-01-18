@@ -1,5 +1,3 @@
-"use client";
-
 import * as TrussOptimizationMod from "./TrussOptimization";
 import * as StressStrainSteelMod from "./StressStrainSteel";
 import * as ManufacturingMod from "./Manufacturing";
@@ -35,7 +33,7 @@ export default function ProblemRenderer({ link, problemId }: { link: string; pro
 
     case "gear-ratio":
         return <Gears problemId={problemId}/>;
-        
+
     case "stress-strain-aluminum":
         return <StressStrainAluminum problemId={problemId}/>;
 

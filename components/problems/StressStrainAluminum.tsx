@@ -1,32 +1,33 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import MicRecorder from "@/components/stt/MicRecorder";
-import TranscriptAnalyzer from "@/components/analysis/TranscriptAnalyzer";
 import SpeechFeedback from "@/components/stt/SpeechFeedback";
 
-type Pt = { x: number; y: number }; 
+type Pt = { x: number; y: number };
 
 const CANVAS_W = 860;
 const CANVAS_H = 460;
 
-const M = { l: 80, r: 220, t: 40, b: 70 }; 
+const M = { l: 80, r: 220, t: 40, b: 70 };
 const PW = CANVAS_W - M.l - M.r;
 const PH = CANVAS_H - M.t - M.b;
 
-const RESAMPLE_N = 160; 
+const RESAMPLE_N = 160;
 const PASS_SCORE = 60;
 
 const REF: Pt[] = [
   { x: 0.0, y: 0.0 },
-  { x: 0.16, y: 0.52 }, 
-  { x: 0.30, y: 0.60 }, 
-  { x: 0.62, y: 0.72 }, 
-  { x: 0.92, y: 0.66 }, 
+  { x: 0.16, y: 0.52 },
+  { x: 0.30, y: 0.60 },
+  { x: 0.62, y: 0.72 },
+  { x: 0.92, y: 0.66 },
 ];
 
-const MAX_ALLOWED_MEAN_DIST = 0.35; 
-const MAX_ALLOWED_HAUSDORFF = 0.22;  
+const MAX_ALLOWED_MEAN_DIST = 0.35;
+const MAX_ALLOWED_HAUSDORFF = 0.22;
+
+// ✅ Put your one-time "gif-like" demo here:
+const DEMO_SRC = "/videos/stress-strain-demo.mp4";
 
 function clamp(v: number, lo: number, hi: number) {
   return Math.max(lo, Math.min(hi, v));
@@ -114,7 +115,8 @@ function compareCurves(user: Pt[], ref: Pt[]) {
   const a = nearestAvg(user, ref);
   const b = nearestAvg(ref, user);
   const mean = (a.mean + b.mean) / 2;
-  const haus = Math.max(a.max, b.max); 
+  const haus = Math.max(a.max, b.max);
+
   const meanScore = 100 * (1 - mean / MAX_ALLOWED_MEAN_DIST);
   const hausPenalty = haus > MAX_ALLOWED_HAUSDORFF ? 35 : 0;
   const score = clamp(meanScore - hausPenalty, 0, 100);
@@ -126,11 +128,99 @@ function inPlot(p: Pt) {
   return p.x >= M.l && p.x <= M.l + PW && p.y >= M.t && p.y <= M.t + PH;
 }
 
+// ✅ Replace your DemoOnceInline with this version
+// - removes the black “pill” bars (no black background)
+// - bigger video
+// - keeps it to the right WITHOUT overlapping the question card
+function DemoOnceInline({
+  show,
+  src,
+  onDone,
+  muted = true,
+}: {
+  show: boolean;
+  src: string;
+  onDone: () => void;
+  muted?: boolean;
+}) {
+  const vref = useRef<HTMLVideoElement | null>(null);
+  const [needsClick, setNeedsClick] = useState(false);
+
+  useEffect(() => {
+    if (!show) return;
+    const v = vref.current;
+    if (!v) return;
+
+    setNeedsClick(false);
+
+    v.pause();
+    v.currentTime = 0;
+    v.loop = false;
+    v.muted = muted;
+    v.load();
+
+    const t = window.setTimeout(async () => {
+      try {
+        const p = v.play();
+        if (p) await p;
+      } catch {
+        setNeedsClick(true);
+      }
+    }, 50);
+
+    return () => window.clearTimeout(t);
+  }, [show, muted, src]);
+
+  if (!show) return null;
+
+  return (
+    <div className="relative lg:justify-self-end lg:pr-2">
+      <div className="relative">
+        <video
+          ref={vref}
+          src={src}
+          muted={muted}
+          playsInline
+          autoPlay
+          loop={false}
+          controls={false}
+          preload="auto"
+          onEnded={onDone}
+          className="aspect-video w-full w-[380px] rounded-2xl object-cover"
+          style={{ background: "transparent" }}
+        />
+
+        {needsClick && (
+          <button
+            type="button"
+            onClick={async () => {
+              const v = vref.current;
+              if (!v) return;
+              try {
+                v.muted = muted;
+                await v.play();
+                setNeedsClick(false);
+              } catch {}
+            }}
+            className="absolute inset-0 grid place-items-center rounded-2xl bg-white/30 backdrop-blur-sm"
+            aria-label="Play demo"
+          >
+            <div className="grid h-16 w-16 place-items-center rounded-full bg-white text-black shadow">
+              ▶
+            </div>
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
+
 export default function StressStrainAluminum({ problemId }: { problemId: string }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [strokes, setStrokes] = useState<Pt[][]>([]); 
+  const [strokes, setStrokes] = useState<Pt[][]>([]);
   const [drawing, setDrawing] = useState(false);
-
 
   const [result, setResult] = useState<null | {
     score: number;
@@ -141,6 +231,20 @@ export default function StressStrainAluminum({ problemId }: { problemId: string 
   }>(null);
 
   const refCanvasPts = useMemo(() => REF.map(normToCanvas), []);
+
+  const [showDemo, setShowDemo] = useState(false);
+
+  useEffect(() => {
+    try {
+        setShowDemo(true);
+    } catch {}
+  }, []);
+
+  function finishDemo() {
+    setShowDemo(false);
+    try {
+    } catch {}
+  }
 
   function drawAll(ctx: CanvasRenderingContext2D) {
     ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
@@ -256,7 +360,7 @@ export default function StressStrainAluminum({ problemId }: { problemId: string 
 
   function onPointerDown(e: React.PointerEvent<HTMLCanvasElement>) {
     const p = getCanvasPt(e);
-    if (!inPlot(p)) return; 
+    if (!inPlot(p)) return;
 
     (e.currentTarget as any).setPointerCapture?.(e.pointerId);
     setDrawing(true);
@@ -296,13 +400,7 @@ export default function StressStrainAluminum({ problemId }: { problemId: string 
 
   async function checkAnswer() {
     if (strokes.length === 0) {
-      setResult({
-        score: 0,
-        mean: 1,
-        haus: 1,
-        pass: false,
-        msg: "Draw your curve first.",
-      });
+      setResult({ score: 0, mean: 1, haus: 1, pass: false, msg: "Draw your curve first." });
       return;
     }
 
@@ -320,7 +418,6 @@ export default function StressStrainAluminum({ problemId }: { problemId: string 
     }
 
     const userNormRaw = longest.map(canvasToNorm).sort((a, b) => a.x - b.x);
-
     userNormRaw[0] = { x: 0, y: 0 };
 
     const user = resample([...userNormRaw], RESAMPLE_N);
@@ -333,21 +430,24 @@ export default function StressStrainAluminum({ problemId }: { problemId: string 
       ? `Nice! Your curve is pretty close. Score: ${score.toFixed(0)}/100`
       : `Not quite. Score: ${score.toFixed(0)}/100. Hint: Aluminum has a smooth curve.`;
 
-    setResult({
-      score,
-      mean,
-      haus,
-      pass,
-      msg,
-    });
+    setResult({ score, mean, haus, pass, msg });
 
     await fetch("/api/progress", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ problemId, score }),
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ problemId, score }),
     });
-  }
 
+    await fetch("/api/attempts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            problemId,
+            status: pass ? "solved" : "attempted",
+        }),
+    });
+
+  }
 
   return (
     <div className="rounded-2xl bg-white p-6 shadow-sm">
@@ -356,9 +456,7 @@ export default function StressStrainAluminum({ problemId }: { problemId: string 
           <div className="text-lg font-semibold text-neutral-900">
             Draw the stress–strain curve for aluminum.
           </div>
-          <div className="mt-1 text-sm text-neutral-600">
-            Your line should be continuous.
-          </div>
+          <div className="mt-1 text-sm text-neutral-600">Your line should be continuous.</div>
         </div>
 
         <div className="flex items-center gap-2">
@@ -394,7 +492,7 @@ export default function StressStrainAluminum({ problemId }: { problemId: string 
         </div>
       )}
 
-      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_190px]">
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_300px]">
         <div className="rounded-2xl bg-neutral-50 p-4">
           <canvas
             ref={canvasRef}
@@ -405,7 +503,10 @@ export default function StressStrainAluminum({ problemId }: { problemId: string 
             onPointerCancel={onPointerUp}
           />
         </div>
+
+        <DemoOnceInline show={showDemo} src={DEMO_SRC} onDone={finishDemo} muted={false} />
       </div>
+
       <SpeechFeedback problemText="Draw the stress–strain curve for aluminum." />
     </div>
   );

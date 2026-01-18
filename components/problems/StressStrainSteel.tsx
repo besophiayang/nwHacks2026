@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useScribe } from "@elevenlabs/react";
-import TranscriptAnalyzer from "@/components/analysis/TranscriptAnalyzer";
+import SpeechFeedback from "@/components/stt/SpeechFeedback";
 
 type Pt = { x: number; y: number };
 
@@ -26,6 +25,9 @@ const REF: Pt[] = [
 
 const MAX_ALLOWED_MEAN_DIST = 0.35;
 const MAX_ALLOWED_HAUSDORFF = 0.22;
+
+// ✅ same pattern as aluminum
+const DEMO_SRC = "/videos/stress-strain-demo.mp4";
 
 function clamp(v: number, lo: number, hi: number) {
   return Math.max(lo, Math.min(hi, v));
@@ -128,16 +130,87 @@ function inPlot(p: Pt) {
   return p.x >= M.l && p.x <= M.l + PW && p.y >= M.t && p.y <= M.t + PH;
 }
 
-async function fetchTokenFromServer() {
-  const r = await fetch("/api/elevenlabs-token", { method: "GET" });
-  if (!r.ok) {
-    const t = await r.text().catch(() => "");
-    throw new Error(`Token error: HTTP ${r.status} ${t}`.trim());
-  }
-  const d = await r.json().catch(() => ({}));
-  const token = d?.token ?? d?.data?.token;
-  if (!token) throw new Error("Token error: missing token in response");
-  return token as string;
+function DemoOnceInline({
+  show,
+  src,
+  onDone,
+  muted = true,
+}: {
+  show: boolean;
+  src: string;
+  onDone: () => void;
+  muted?: boolean;
+}) {
+  const vref = useRef<HTMLVideoElement | null>(null);
+  const [needsClick, setNeedsClick] = useState(false);
+
+  useEffect(() => {
+    if (!show) return;
+    const v = vref.current;
+    if (!v) return;
+
+    setNeedsClick(false);
+
+    v.pause();
+    v.currentTime = 0;
+    v.loop = false;
+    v.muted = muted;
+    v.load();
+
+    const t = window.setTimeout(async () => {
+      try {
+        const p = v.play();
+        if (p) await p;
+      } catch {
+        setNeedsClick(true);
+      }
+    }, 50);
+
+    return () => window.clearTimeout(t);
+  }, [show, muted, src]);
+
+  if (!show) return null;
+
+  return (
+    <div className="relative lg:justify-self-end lg:pr-2">
+      <div className="relative">
+        <video
+          ref={vref}
+          src={src}
+          muted={muted}
+          playsInline
+          autoPlay
+          loop={false}
+          controls={false}
+          preload="auto"
+          onEnded={onDone}
+          className="aspect-video w-full max-w-[420px] rounded-2xl object-cover"
+          style={{ background: "transparent" }}
+        />
+
+        {needsClick && (
+          <button
+            type="button"
+            onClick={async () => {
+              const v = vref.current;
+              if (!v) return;
+              try {
+                v.muted = muted;
+                await v.play();
+                setNeedsClick(false);
+              } catch {}
+            }}
+            className="absolute inset-0 grid place-items-center rounded-2xl bg-white/30 backdrop-blur-sm"
+            aria-label="Play demo"
+          >
+            <div className="grid h-16 w-16 place-items-center rounded-full bg-white text-black shadow">
+              ▶
+            </div>
+          </button>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default function StressStrainSteel({ problemId }: { problemId: string }) {
@@ -155,60 +228,14 @@ export default function StressStrainSteel({ problemId }: { problemId: string }) 
 
   const refCanvasPts = useMemo(() => REF.map(normToCanvas), []);
 
-  const scribe = useScribe({
-    modelId: "scribe_v2_realtime",
-
-    onCommittedTranscript: (data: { text: string }) => {
-        const text = data?.text ?? "";
-        if (!text) return;
-        setFinalTranscript((prev) => (prev ? prev + " " : "") + text);
-    },
- });
-
-
-  const [finalTranscript, setFinalTranscript] = useState("");
-
-
-  const [sttError, setSttError] = useState<string | null>(null);
-  const [showTranscript, setShowTranscript] = useState(false);
-
-  const transcript = finalTranscript;
-
-  async function toggleRecording() {
-  setSttError(null);
-
-  try {
-    if (scribe.isConnected) {
-        setShowTranscript(true);
-
-        try {
-            scribe.commit();
-        } catch {}
-
-        await new Promise((r) => setTimeout(r, 1000));
-
-        scribe.disconnect();
-        return;
-    }
-
-
-    setShowTranscript(false);
-    setFinalTranscript("");
-
-    const token = await fetchTokenFromServer();
-        await scribe.connect({
-        token,
-        microphone: { echoCancellation: true, noiseSuppression: true },
-        });
-    } catch (e: any) {
-            setSttError(e?.message ?? "Speech-to-text error");
-            try {
-            if (scribe.isConnected) await scribe.disconnect();
-            } catch {}
-            setShowTranscript(false);
-        }
-    }
-
+  // ✅ play demo every time user enters the question (mount)
+  const [showDemo, setShowDemo] = useState(false);
+  useEffect(() => {
+    setShowDemo(true);
+  }, []);
+  function finishDemo() {
+    setShowDemo(false);
+  }
 
   function drawAll(ctx: CanvasRenderingContext2D) {
     ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
@@ -266,9 +293,7 @@ export default function StressStrainSteel({ problemId }: { problemId: string }) 
       ctx.lineCap = "round";
       ctx.beginPath();
       ctx.moveTo(refCanvasPts[0].x, refCanvasPts[0].y);
-      for (let i = 1; i < refCanvasPts.length; i++) {
-        ctx.lineTo(refCanvasPts[i].x, refCanvasPts[i].y);
-      }
+      for (let i = 1; i < refCanvasPts.length; i++) ctx.lineTo(refCanvasPts[i].x, refCanvasPts[i].y);
       ctx.stroke();
       ctx.restore();
     }
@@ -332,7 +357,6 @@ export default function StressStrainSteel({ problemId }: { problemId: string }) 
     (e.currentTarget as any).setPointerCapture?.(e.pointerId);
     setDrawing(true);
     setResult(null);
-
     setStrokes((prev) => [...prev, [p]]);
   }
 
@@ -367,20 +391,11 @@ export default function StressStrainSteel({ problemId }: { problemId: string }) 
 
   async function checkAnswer() {
     if (strokes.length === 0) {
-      setResult({
-        score: 0,
-        mean: 1,
-        haus: 1,
-        pass: false,
-        msg: "Draw your curve first.",
-      });
+      setResult({ score: 0, mean: 1, haus: 1, pass: false, msg: "Draw your curve first." });
       return;
     }
 
-    const longest = strokes.reduce(
-      (best, s) => (s.length > best.length ? s : best),
-      strokes[0]
-    );
+    const longest = strokes.reduce((best, s) => (s.length > best.length ? s : best), strokes[0]);
 
     if (longest.length < 10) {
       setResult({
@@ -406,13 +421,7 @@ export default function StressStrainSteel({ problemId }: { problemId: string }) 
       ? `Nice! Your curve is pretty close. Score: ${score.toFixed(0)}/100`
       : `Not quite. Score: ${score.toFixed(0)}/100. Hint: Steel has a clear yield point.`;
 
-    setResult({
-      score,
-      mean,
-      haus,
-      pass,
-      msg,
-    });
+    setResult({ score, mean, haus, pass, msg });
 
     await fetch("/api/progress", {
       method: "POST",
@@ -426,7 +435,6 @@ export default function StressStrainSteel({ problemId }: { problemId: string }) 
       body: JSON.stringify({
         problemId,
         status: pass ? "solved" : "attempted",
-        score,
       }),
     });
 
@@ -442,9 +450,7 @@ export default function StressStrainSteel({ problemId }: { problemId: string }) 
           <div className="text-lg font-semibold text-neutral-900">
             Draw the stress–strain curve for steel.
           </div>
-          <div className="mt-1 text-sm text-neutral-600">
-            Your line should be continuous.
-          </div>
+          <div className="mt-1 text-sm text-neutral-600">Your line should be continuous.</div>
         </div>
 
         <div className="flex items-center gap-2">
@@ -473,71 +479,30 @@ export default function StressStrainSteel({ problemId }: { problemId: string }) 
         <div
           className={[
             "mt-4 rounded-xl px-4 py-3 text-sm",
-            result.pass
-              ? "bg-emerald-50 text-emerald-800"
-              : "bg-amber-50 text-amber-900",
+            result.pass ? "bg-emerald-50 text-emerald-800" : "bg-amber-50 text-amber-900",
           ].join(" ")}
         >
           <div className="font-semibold">{result.msg}</div>
         </div>
       )}
 
-      <div className="mt-6 grid grid-cols-1 gap-6">
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_520px]">
         <div className="rounded-2xl bg-neutral-50 p-4">
-          <div className="relative">
-            <canvas
-              ref={canvasRef}
-              className="h-[360px] w-full rounded-xl bg-white"
-              onPointerDown={onPointerDown}
-              onPointerMove={onPointerMove}
-              onPointerUp={onPointerUp}
-              onPointerCancel={onPointerUp}
-            />
-
-            <div className="pointer-events-none absolute right-4 top-4 flex flex-col items-center gap-2">
-              <button
-                type="button"
-                className={[
-                  "pointer-events-auto grid h-11 w-11 place-items-center rounded-full",
-                  "bg-neutral-180 text-neutral-900 shadow-sm backdrop-blur",
-                  "transition hover:shadow-md active:scale-[0.98]",
-                  scribe.isConnected ? "ring-2 ring-emerald-500" : "",
-                ].join(" ")}
-                onClick={toggleRecording}
-                aria-label={scribe.isConnected ? "Stop recording" : "Start recording"}
-              >
-                <span className="text-base">{scribe.isConnected ? "■" : "▶︎"}</span>
-              </button>
-              <div className="text-[11px] text-neutral-400">
-                {scribe.isConnected ? "Recording..." : ""}
-              </div>
-            </div>
-          </div>
-
-          {sttError && (
-            <div className="mt-3 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {sttError}
-            </div>
-          )}
-
-          {showTranscript && !scribe.isConnected && (
-            <div className="mt-4 rounded-2xl border border-neutral-200 bg-white p-4">
-                <div className="text-sm font-semibold text-neutral-800">
-                Interview Transcript
-                </div>
-                {transcript ? (
-                <div className="mt-3 whitespace-pre-wrap text-sm text-neutral-800">
-                    {transcript}
-                </div>
-                ) : (
-                <div className="mt-3 text-sm text-neutral-400">
-                    No transcript captured.
-                </div>
-                )}
-            </div>
-            )}
+          <canvas
+            ref={canvasRef}
+            className="h-[360px] w-full rounded-xl bg-white"
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerCancel={onPointerUp}
+          />
         </div>
+
+        <DemoOnceInline show={showDemo} src={DEMO_SRC} onDone={finishDemo} muted={false} />
       </div>
+
+      <SpeechFeedback problemText="Draw the stress–strain curve for steel." />
     </div>
   );
 }
+

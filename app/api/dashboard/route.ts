@@ -22,6 +22,7 @@ export async function GET() {
   const user = userRes.user;
   if (!user) return NextResponse.json({ error: "Not logged in" }, { status: 401 });
 
+  // 1) fetch problems
   const { data: problems, error: pErr } = await supabase
     .from("problems")
     .select("id,title,link,category,difficulty,created_at")
@@ -29,9 +30,11 @@ export async function GET() {
 
   if (pErr) return NextResponse.json({ error: pErr.message }, { status: 500 });
 
+  // Map problem_id -> category (for weekly stacked bars)
   const categoryByProblemId = new Map<string, string>();
   for (const p of problems ?? []) categoryByProblemId.set((p as any).id, (p as any).category);
 
+  // 2) fetch attempts for recent window (used for weekly + streak + solvedProblemIds)
   const since = new Date();
   since.setDate(since.getDate() - 60);
 
@@ -52,6 +55,7 @@ export async function GET() {
     )
   );
 
+  // 3) NEW: fetch best_score per problem from problem_progress (this is what your /api/progress writes)
   const { data: progressRows, error: prErr } = await supabase
     .from("problem_progress")
     .select("problem_id,best_score")
@@ -66,11 +70,13 @@ export async function GET() {
     bestScoreByProblemId.set(pid, s);
   }
 
+  // 4) attach best_score onto each problem row
   const problemsWithScores = (problems ?? []).map((p: any) => ({
     ...p,
     best_score: bestScoreByProblemId.get(p.id) ?? 0,
   }));
 
+  // weekly (Sun..Sat) for current week
   const now = new Date();
   const day = now.getDay(); // 0=Sun
   const weekStart = startOfDay(new Date(now.getFullYear(), now.getMonth(), now.getDate() - day));
@@ -87,6 +93,7 @@ export async function GET() {
     }
   }
 
+  // weekly by category (stacked)
   const weeklyByCategory: Record<string, number[]> = {};
   function ensureCat(cat: string) {
     if (!weeklyByCategory[cat]) weeklyByCategory[cat] = [0, 0, 0, 0, 0, 0, 0];
@@ -107,6 +114,7 @@ export async function GET() {
     }
   }
 
+  // streak (based on solved days)
   const solvedDaysSet = new Set<string>();
   for (const a of attempts ?? []) {
     if ((a as any).status !== "solved") continue;

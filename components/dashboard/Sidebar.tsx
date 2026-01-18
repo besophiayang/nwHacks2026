@@ -92,7 +92,7 @@ export default function Sidebar() {
             alt="Logo"
             width={96}
             height={96}
-            className="h-12 w-12 object-contain sm:h-14 sm:w-14"
+            className="h-12 w-12 object-contain sm:h-24 sm:w-24"
             priority
           />
         )}

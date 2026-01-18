@@ -2,6 +2,7 @@
 
 import React, { useMemo, useRef, useState } from "react";
 import Image, { StaticImageData } from "next/image";
+import SpeechFeedback from "@/components/stt/SpeechFeedback";
 
 import gear8 from "../../images/gear8.png";
 import gear12 from "../../images/gear12.png";
@@ -270,10 +271,10 @@ export default function Gears() {
 
     if (ok) {
       setScore(100);
-      setMsg("✅ Correct! Nice gear train. (Max reduction target achieved.)");
+      setMsg("Correct! Nice gear train. (Max reduction target achieved.)");
     } else {
       setScore(0);
-      setMsg("❌ Not quite. Try using smaller gears early and larger gears later for more reduction.");
+      setMsg("Not quite. Try using smaller gears early and larger gears later for more reduction.");
     }
 
     setSpinning(true);
@@ -375,7 +376,6 @@ export default function Gears() {
                 <Peg key={p.id} peg={p} />
               ))}
 
-              {/* gears */}
               {gears.map((g) => (
                 <GearSprite
                   key={g.id}
@@ -388,6 +388,7 @@ export default function Gears() {
           </div>
         </div>
       </div>
+      <SpeechFeedback problemText="Draw the stress–strain curve for aluminum." />
     </div>
   );
 }

@@ -125,22 +125,37 @@ export default function ProblemList({
     };
   }, []);
 
+  const PINNED_SLUGS = [
+  "stress-strain-steel",
+  "truss-optimization",
+  "stress-strain-aluminum",
+  "gear-ratio",
+];
+const PINNED_RANK = new Map(PINNED_SLUGS.map((s, i) => [s, i]));
+
+
   const rows = useMemo(() => {
   const computed = (problems ?? []).map((p) => {
-      const score = Math.max(
-        0,
-        Math.min(100, Math.round(Number(p.best_score ?? 0)))
-      );
-      const solved = score >= PASS_SCORE;
-      return { ...p, score, solved };
+    const score = Math.max(0, Math.min(100, Math.round(Number(p.best_score ?? 0))));
+    const solved = score >= PASS_SCORE;
+    return { ...p, score, solved };
+  });
+
+  const want = norm(selectedCategory);
+  if (!want || want === "all") {
+    return computed.sort((a, b) => {
+      const aSlug = norm(a.link).replace(/^\/+/, "").replace(/^problems\//, "");
+      const bSlug = norm(b.link).replace(/^\/+/, "").replace(/^problems\//, "");
+      const ar = PINNED_RANK.has(aSlug) ? (PINNED_RANK.get(aSlug) as number) : Infinity;
+      const br = PINNED_RANK.has(bSlug) ? (PINNED_RANK.get(bSlug) as number) : Infinity;
+      if (ar !== br) return ar - br; // pinned first, in your chosen order
+      return 0; // keep existing order for everything else
     });
+  }
 
-    const want = norm(selectedCategory);
+  return computed.filter((p) => norm(p.category) === want);
+}, [problems, selectedCategory]);
 
-    if (!want || want === "all") return computed;
-
-    return computed.filter((p) => norm(p.category) === want);
-  }, [problems, selectedCategory]);
 
 
   return (

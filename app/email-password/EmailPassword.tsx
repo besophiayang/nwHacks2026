@@ -7,6 +7,7 @@ import Image from "next/image";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 
 import Logo from "@/images/Logo.png";
+import LoginSlogan from "@/images/login slogan.png";
 
 type EmailPasswordProp = {
   user: User | null;
@@ -35,11 +36,9 @@ export default function EmailPasswordDemo({ user }: EmailPasswordProp) {
   }
 
   useEffect(() => {
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setCurrentUser(session?.user ?? null);
-      }
-    );
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setCurrentUser(session?.user ?? null);
+    });
 
     return () => {
       listener?.subscription.unsubscribe();
@@ -126,9 +125,7 @@ export default function EmailPasswordDemo({ user }: EmailPasswordProp) {
                       className="mt-3 w-full border-0 border-b border-neutral-300 bg-transparent px-0 pb-2 text-sm text-neutral-900 outline-none focus:border-neutral-900 focus:ring-0"
                     />
                     <p className="mt-2 text-xs text-neutral-400">
-                      {mode === "signup"
-                        ? "Minimum 6 characters"
-                        : "Enter your password"}
+                      {mode === "signup" ? "Minimum 6 characters" : "Enter your password"}
                     </p>
                   </div>
 
@@ -142,9 +139,7 @@ export default function EmailPasswordDemo({ user }: EmailPasswordProp) {
 
                 <div className="mt-6 flex items-center justify-between text-xs text-neutral-400">
                   <span className="uppercase tracking-wider">
-                    {mode === "signup"
-                      ? "Already have an account?"
-                      : "Don't have an account?"}
+                    {mode === "signup" ? "Already have an account?" : "Don't have an account?"}
                   </span>
 
                   <button
@@ -157,24 +152,17 @@ export default function EmailPasswordDemo({ user }: EmailPasswordProp) {
                 </div>
 
                 {status && (
-                  <p
-                    className="mt-6 text-sm text-neutral-700"
-                    role="status"
-                    aria-live="polite"
-                  >
+                  <p className="mt-6 text-sm text-neutral-700" role="status" aria-live="polite">
                     {status}
                   </p>
                 )}
               </div>
             ) : (
               <div className="pt-44">
-                <h1 className="text-3xl font-medium tracking-tight text-neutral-900">
-                  Account
-                </h1>
+                <h1 className="text-3xl font-medium tracking-tight text-neutral-900">Account</h1>
 
                 <p className="mt-6 text-sm text-neutral-700">
-                  Signed in as{" "}
-                  <b className="text-neutral-900">{currentUser.email}</b>
+                  Signed in as <b className="text-neutral-900">{currentUser.email}</b>
                 </p>
 
                 <div className="mt-8 flex gap-3">
@@ -208,9 +196,14 @@ export default function EmailPasswordDemo({ user }: EmailPasswordProp) {
           </div>
         </section>
 
-        <section className="relative hidden bg-[#e9e7e4] md:block md:flex-1">
+        <section className="relative hidden bg-[#efeded] md:block md:flex-1">
           <div className="absolute inset-0 flex items-center justify-center p-10">
-            <div className="h-full w-full bg-black/5" />
+            <Image
+              src={LoginSlogan}
+              alt="Login slogan"
+              priority
+              className="h-auto w-full max-w-[760px] object-contain"
+            />
           </div>
         </section>
       </div>

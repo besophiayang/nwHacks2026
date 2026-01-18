@@ -9,7 +9,6 @@ export default function DashboardPage() {
       <div className="flex min-h-screen">
         <Sidebar />
         <div className="flex-1 px-6 pt-6">
-          <TopBar />
           <div className="mt-8 w-full lg:mt-10">
             <div className="w-full">
               <div className="lg:col-span-2">

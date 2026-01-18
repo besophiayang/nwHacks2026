@@ -27,7 +27,8 @@ export default function StatCards() {
   async function loadStats() {
     const r = await fetch("/api/dashboard", { cache: "no-store" });
     const d = await r.json();
-    console.log("dashboard stats payload:", d);
+    console.log("dashboard stats:", d);
+
 
     setStats({
       weeklySolved: d.weeklySolved ?? [0, 0, 0, 0, 0, 0, 0],
