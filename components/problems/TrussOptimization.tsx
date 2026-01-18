@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import MicRecorder from "../stt/MicRecorder";
 
 type Pt = { x: number; y: number };
 type JointKey = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I";
@@ -552,6 +553,9 @@ export default function TrussOptimization() {
               )}
             </div>
           </div>
+        </div>
+        <div className="rounded-2xl bg-white p-6 shadow-sm">
+            <MicRecorder className="mb-4" />
         </div>
       </div>
     </div>

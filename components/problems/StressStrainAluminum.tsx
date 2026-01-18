@@ -1,6 +1,9 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import MicRecorder from "@/components/stt/MicRecorder";
+import TranscriptAnalyzer from "@/components/analysis/TranscriptAnalyzer";
+import SpeechFeedback from "@/components/stt/SpeechFeedback";
 
 type Pt = { x: number; y: number }; 
 
@@ -127,6 +130,7 @@ export default function StressStrainAluminum({ problemId }: { problemId: string 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [strokes, setStrokes] = useState<Pt[][]>([]); 
   const [drawing, setDrawing] = useState(false);
+
 
   const [result, setResult] = useState<null | {
     score: number;
@@ -402,6 +406,7 @@ export default function StressStrainAluminum({ problemId }: { problemId: string 
           />
         </div>
       </div>
+      <SpeechFeedback problemText="Draw the stress–strain curve for aluminum." />
     </div>
   );
 }

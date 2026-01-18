@@ -12,7 +12,7 @@ export async function GET() {
 
   const apiKey = process.env.ELEVEN_LABS_API_KEY;
   if (!apiKey) {
-    return NextResponse.json({ error: "Missing ELEVENLABS_API_KEY" }, { status: 500 });
+    return NextResponse.json({ error: "Missing ELEVEN_LABS_API_KEY" }, { status: 500 });
   }
 
   try {

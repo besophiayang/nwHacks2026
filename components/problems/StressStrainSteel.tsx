@@ -1,12 +1,8 @@
 "use client";
 
-<<<<<<< HEAD
-export default function StressStrainSteel() { 
-    return <div>Stress Strain Steel Problem</div>;
- }
-=======
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useScribe } from "@elevenlabs/react";
+import TranscriptAnalyzer from "@/components/analysis/TranscriptAnalyzer";
 
 type Pt = { x: number; y: number };
 
@@ -545,4 +541,3 @@ export default function StressStrainSteel({ problemId }: { problemId: string }) 
     </div>
   );
 }
->>>>>>> 9d04e6bb68e9594e8b699c7cca8069e1786962ba

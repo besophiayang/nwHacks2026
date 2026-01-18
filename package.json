@@ -11,10 +11,6 @@
   "dependencies": {
     "@elevenlabs/elevenlabs-js": "^2.31.0",
     "@elevenlabs/react": "^0.13.0",
-<<<<<<< HEAD
-    "@google/genai": "^1.37.0",
-=======
->>>>>>> 9d04e6bb68e9594e8b699c7cca8069e1786962ba
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.90.1",
     "next": "16.1.3",
