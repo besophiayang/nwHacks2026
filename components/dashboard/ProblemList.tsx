@@ -75,7 +75,11 @@ function difficultyPill(difficultyRaw: any) {
   return { text: "Hard", cls: "bg-rose-50 text-rose-700 border-rose-100" };
 }
 
-export default function ProblemList() {
+export default function ProblemList({
+  selectedCategory,
+}: {
+  selectedCategory: string;
+}) {
   const [problems, setProblems] = useState<ProblemRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [errMsg, setErrMsg] = useState<string | null>(null);
@@ -122,7 +126,7 @@ export default function ProblemList() {
   }, []);
 
   const rows = useMemo(() => {
-    return (problems ?? []).map((p) => {
+  const computed = (problems ?? []).map((p) => {
       const score = Math.max(
         0,
         Math.min(100, Math.round(Number(p.best_score ?? 0)))
@@ -130,7 +134,14 @@ export default function ProblemList() {
       const solved = score >= PASS_SCORE;
       return { ...p, score, solved };
     });
-  }, [problems]);
+
+    const want = norm(selectedCategory);
+
+    if (!want || want === "all") return computed;
+
+    return computed.filter((p) => norm(p.category) === want);
+  }, [problems, selectedCategory]);
+
 
   return (
     <div className="rounded-2xl bg-white p-5 shadow-sm">
@@ -185,7 +196,7 @@ export default function ProblemList() {
 
                     <div>
                       <div className="flex items-center gap-2">
-                        <div className={`text-sm font-semibold ${cat.title}`}>
+                        <div className={`text-sm font-semibold text-neutral-700`}>
                           {p.title}
                         </div>
 
