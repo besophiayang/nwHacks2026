@@ -116,7 +116,7 @@ export default function ProblemList({
         if (!alive) return;
         setLoading(false);
       }
-    }
+    } 
 
     load();
 
