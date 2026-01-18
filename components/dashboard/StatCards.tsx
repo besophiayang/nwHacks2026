@@ -52,7 +52,6 @@ export default function StatCards() {
 
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-      {/* Streak */}
       <div className="rounded-2xl bg-white p-5 shadow-sm md:col-span-1">
         <div className="text-sm font-semibold text-neutral-800">Streak</div>
 
@@ -75,15 +74,13 @@ export default function StatCards() {
         </div>
       </div>
 
-      {/* Weekly Statistics */}
-      <div className="rounded-2xl bg-white p-5 shadow-sm md:col-span-2">
+      <div className="rounded-2xl bg-white p-5 shadow-sm md:col-span-1">
         <div className="text-sm font-semibold text-neutral-800">Weekly Statistics</div>
 
         <div className="mt-4 grid grid-cols-7 items-end gap-4 sm:gap-5 md:gap-6">
           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d, dayIdx) => {
             const total = stats?.weeklySolved?.[dayIdx] ?? 0;
 
-            // consistent container, scale fill inside it
             const containerH = 72;
             const fillH = Math.round((total / weeklyMax) * containerH);
 

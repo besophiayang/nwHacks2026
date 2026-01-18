@@ -26,7 +26,6 @@ const REF: Pt[] = [
 const MAX_ALLOWED_MEAN_DIST = 0.35;
 const MAX_ALLOWED_HAUSDORFF = 0.22;
 
-// ✅ same pattern as aluminum
 const DEMO_SRC = "/videos/stress-strain-demo.mp4";
 
 function clamp(v: number, lo: number, hi: number) {
@@ -172,7 +171,7 @@ function DemoOnceInline({
   if (!show) return null;
 
   return (
-    <div className="relative lg:justify-self-end lg:pr-2">
+    <div className="relative">
       <div className="relative">
         <video
           ref={vref}
@@ -228,7 +227,6 @@ export default function StressStrainSteel({ problemId }: { problemId: string }) 
 
   const refCanvasPts = useMemo(() => REF.map(normToCanvas), []);
 
-  // ✅ play demo every time user enters the question (mount)
   const [showDemo, setShowDemo] = useState(false);
   useEffect(() => {
     setShowDemo(true);
@@ -486,20 +484,23 @@ export default function StressStrainSteel({ problemId }: { problemId: string }) 
         </div>
       )}
 
-      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_520px]">
-        <div className="rounded-2xl bg-neutral-50 p-4">
-          <canvas
-            ref={canvasRef}
-            className="h-[360px] w-full rounded-xl bg-white"
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={onPointerUp}
-            onPointerCancel={onPointerUp}
-          />
-        </div>
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,520px)]">
+  <div className="min-w-0 rounded-2xl bg-neutral-50 p-4">
+    <canvas
+      ref={canvasRef}
+      className="h-[360px] w-full rounded-xl bg-white"
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+    />
+  </div>
 
-        <DemoOnceInline show={showDemo} src={DEMO_SRC} onDone={finishDemo} muted={false} />
-      </div>
+  <div className="min-w-0 flex justify-end">
+  <DemoOnceInline show={showDemo} src={DEMO_SRC} onDone={finishDemo} muted={false} />
+</div>
+</div>
+
 
       <SpeechFeedback problemText="Draw the stress–strain curve for steel." />
     </div>
