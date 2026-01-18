@@ -26,7 +26,6 @@ const REF: Pt[] = [
 const MAX_ALLOWED_MEAN_DIST = 0.35;
 const MAX_ALLOWED_HAUSDORFF = 0.22;
 
-// ✅ Put your one-time "gif-like" demo here:
 const DEMO_SRC = "/videos/stress-strain-demo.mp4";
 
 function clamp(v: number, lo: number, hi: number) {
@@ -128,10 +127,6 @@ function inPlot(p: Pt) {
   return p.x >= M.l && p.x <= M.l + PW && p.y >= M.t && p.y <= M.t + PH;
 }
 
-// ✅ Replace your DemoOnceInline with this version
-// - removes the black “pill” bars (no black background)
-// - bigger video
-// - keeps it to the right WITHOUT overlapping the question card
 function DemoOnceInline({
   show,
   src,
