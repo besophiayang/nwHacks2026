@@ -1,5 +1,5 @@
 "use client";
 
-export default function StressSrainSteel() { 
+export default function StressStrainSteel() { 
     return <div>Stress Strain Steel Problem</div>;
  }
