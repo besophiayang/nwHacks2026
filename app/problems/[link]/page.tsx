@@ -43,7 +43,7 @@ export default async function ProblemPage({
             <div className="text-sm font-semibold text-neutral-900">
               {problem.title}
             </div>
-            <div className="text-sm font-semibold text-emerald-600">
+            <div className="text-sm font-semibold text-black-600">
               [{String(problem.difficulty).toUpperCase()}]
             </div>
           </div>
