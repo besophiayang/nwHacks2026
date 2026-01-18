@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import Logo from "@/images/Logo.png";
+import Logo from "@/images/logo.png";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 import { useState } from "react";

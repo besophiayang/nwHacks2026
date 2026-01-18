@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 
-import Logo from "@/images/Logo.png";
+import Logo from "@/images/logo.png";
 import LoginSlogan from "@/images/login slogan.png";
 
 type EmailPasswordProp = {
